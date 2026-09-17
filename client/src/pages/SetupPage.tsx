@@ -264,7 +264,7 @@ export default function SetupPage() {
               checked={fixedTeams}
               onChange={(e) => setFixedTeams(e.target.checked)}
             />
-            Usar times fixos (sorteio) — libera a aba Times
+            Usar times fixos (sorteio)
           </label>
 
           <h3>Jogadores ({selected.length} selecionados)</h3>
