@@ -27,7 +27,7 @@ export default function App() {
           Jogadores
         </NavLink>
         <NavLink to="/setup" className={linkClass}>
-          Novo / Setup
+          Setup / Editar
         </NavLink>
         {activeTournament?.settings.fixedTeams && (
           <NavLink to="/teams" className={linkClass}>

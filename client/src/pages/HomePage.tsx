@@ -101,7 +101,7 @@ export default function HomePage() {
             </p>
             <div className="row">
               <Link className="btn" to="/setup">
-                Setup / Sorteio
+                Setup / Editar
               </Link>
               {activeTournament.format === 'groups_knockout' && (
                 <Link className="btn secondary" to="/groups">
@@ -109,7 +109,7 @@ export default function HomePage() {
                 </Link>
               )}
               <Link className="btn secondary" to="/bracket">
-                Chave
+                Chave (mata-mata)
               </Link>
               <Link className="btn secondary" to="/matches">
                 Jogos

@@ -15,29 +15,68 @@ export function nextPowerOfTwo(n: number): number {
   return p;
 }
 
-/** Split players into groups as evenly as possible around targetSize. */
+/**
+ * Decide quantos grupos e tamanhos equilibrados.
+ * Evita “um único grupo principal” quando há jogadores suficientes para dividir.
+ */
+export function planGroupDivision(
+  playerCount: number,
+  targetSize: number,
+): { groupCount: number; sizes: number[] } {
+  if (playerCount < 2) {
+    throw new Error('É preciso pelo menos 2 jogadores');
+  }
+
+  const target = Math.min(Math.max(Math.floor(targetSize) || 4, 2), 16);
+
+  // base: quantos grupos cabem com o tamanho alvo
+  let groupCount = Math.max(1, Math.ceil(playerCount / target));
+
+  // com 6+ jogadores, nunca ficar em 1 grupo só (campeonato de verdade)
+  if (playerCount >= 6) {
+    groupCount = Math.max(groupCount, 2);
+  }
+  // com 10+ e alvo pequeno, preferir mais grupos equilibrados (~4)
+  if (playerCount >= 10) {
+    const preferred = Math.round(playerCount / Math.min(target, 4));
+    groupCount = Math.max(groupCount, preferred);
+  }
+
+  // se algum grupo ficaria muito maior que o alvo, cria mais grupos
+  while (Math.ceil(playerCount / groupCount) > target + 1) {
+    groupCount += 1;
+  }
+
+  // cada grupo precisa de pelo menos 2
+  while (groupCount > 1 && Math.floor(playerCount / groupCount) < 2) {
+    groupCount -= 1;
+  }
+
+  const base = Math.floor(playerCount / groupCount);
+  const rem = playerCount % groupCount;
+  const sizes = Array.from({ length: groupCount }, (_, i) => base + (i < rem ? 1 : 0));
+  return { groupCount, sizes };
+}
+
+/** Split players into balanced named groups. */
 export function splitIntoGroups(
   playerIds: string[],
   targetSize: number,
   random: () => number = Math.random,
 ): Group[] {
-  if (playerIds.length < 2) {
-    throw new Error('É preciso pelo menos 2 jogadores');
-  }
-  const size = Math.max(2, targetSize);
   const shuffled = shuffle(playerIds, random);
-  const groupCount = Math.max(1, Math.ceil(shuffled.length / size));
-  const groups: Group[] = Array.from({ length: groupCount }, (_, i) => ({
-    id: createId('g'),
-    name: `Grupo ${String.fromCharCode(65 + i)}`,
-    playerIds: [],
-  }));
-
-  shuffled.forEach((pid, idx) => {
-    groups[idx % groupCount].playerIds.push(pid);
+  const { sizes } = planGroupDivision(shuffled.length, targetSize);
+  const groups: Group[] = [];
+  let cursor = 0;
+  sizes.forEach((size, i) => {
+    groups.push({
+      id: createId('g'),
+      name: `Grupo ${String.fromCharCode(65 + i)}`,
+      playerIds: shuffled.slice(cursor, cursor + size),
+    });
+    cursor += size;
   });
-
-  return groups.filter((g) => g.playerIds.length > 0);
+  return groups;
 }
 
 export function roundRobinMatches(group: Group): Match[] {
@@ -76,4 +115,11 @@ export function padWithByes(seeds: (string | null)[]): (string | null)[] {
   const out = [...seeds];
   while (out.length < size) out.push(null);
   return out;
+}
+
+export function describeGroupPlan(playerCount: number, targetSize: number): string {
+  if (playerCount < 2) return 'Selecione pelo menos 2 jogadores';
+  const { groupCount, sizes } = planGroupDivision(playerCount, targetSize);
+  const parts = sizes.map((s, i) => `Grupo ${String.fromCharCode(65 + i)}: ${s}`).join(' · ');
+  return `${groupCount} grupo${groupCount > 1 ? 's' : ''} — ${parts}`;
 }
