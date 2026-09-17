@@ -7,6 +7,10 @@ export default function PlayersPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const sorted = [...store.players].sort((a, b) =>
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }),
+  );
+
   async function addPlayer(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
@@ -48,7 +52,11 @@ export default function PlayersPage() {
   return (
     <div className="stack">
       <h1>Jogadores</h1>
-      <p className="muted">Pool reutilizável entre campeonatos.</p>
+      <p className="muted">
+        Pool reutilizável entre campeonatos.{' '}
+        <strong style={{ color: 'var(--text)' }}>{store.players.length}</strong> cadastrado
+        {store.players.length === 1 ? '' : 's'}.
+      </p>
       {!isAdmin && <p className="readonly-hint">Visualização — faça login admin para editar.</p>}
 
       {isAdmin && (
@@ -64,25 +72,46 @@ export default function PlayersPage() {
       )}
       {error && <p className="error">{error}</p>}
 
-      <div className="panel">
-        {store.players.length === 0 && <p className="muted">Nenhum jogador ainda.</p>}
-        <ul className="stack">
-          {store.players.map((p) => (
-            <li key={p.id} className="row">
-              <strong>{p.name}</strong>
-              {isAdmin && (
-                <>
-                  <button type="button" className="secondary" onClick={() => void rename(p.id)}>
-                    Renomear
-                  </button>
-                  <button type="button" className="danger" onClick={() => void remove(p.id)}>
-                    Remover
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+      <div className="panel" style={{ overflowX: 'auto' }}>
+        {store.players.length === 0 ? (
+          <p className="muted">Nenhum jogador ainda.</p>
+        ) : (
+          <table className="players-table">
+            <thead>
+              <tr>
+                <th style={{ width: '4rem' }}>#</th>
+                <th>Nome</th>
+                {isAdmin && <th style={{ width: '12rem' }}>Ações</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((p, idx) => (
+                <tr key={p.id}>
+                  <td className="muted">{idx + 1}</td>
+                  <td>
+                    <strong>{p.name}</strong>
+                  </td>
+                  {isAdmin && (
+                    <td>
+                      <div className="row">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => void rename(p.id)}
+                        >
+                          Renomear
+                        </button>
+                        <button type="button" className="danger" onClick={() => void remove(p.id)}>
+                          Remover
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
