@@ -64,7 +64,7 @@ export async function handleLogin(
   body: unknown,
 ): Promise<ApiResult> {
   const limit = checkLoginRateLimit(ip || 'unknown');
-  if (!limit.ok) {
+  if (limit.ok === false) {
     return {
       status: 429,
       body: { error: `Muitas tentativas. Aguarde ${limit.retryAfterSec}s` },

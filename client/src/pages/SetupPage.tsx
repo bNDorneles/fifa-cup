@@ -12,6 +12,7 @@ export default function SetupPage() {
   const [format, setFormat] = useState<TournamentFormat>('groups_knockout');
   const [groupSize, setGroupSize] = useState(4);
   const [advancePerGroup, setAdvancePerGroup] = useState(2);
+  const [fixedTeams, setFixedTeams] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -38,11 +39,12 @@ export default function SetupPage() {
       format,
       status: 'draft',
       createdAt: new Date().toISOString(),
-      settings: { groupSize, advancePerGroup },
+      settings: { groupSize, advancePerGroup, fixedTeams },
       playerIds: selected,
       groups: [],
       matches: [],
       bracket: null,
+      teamByPlayerId: {},
     };
     await updateStore((s) => ({
       ...s,
@@ -116,13 +118,14 @@ export default function SetupPage() {
           ? {
               ...t,
               playerIds: selected,
-              settings: { groupSize, advancePerGroup },
+              settings: { groupSize, advancePerGroup, fixedTeams },
               format,
               name: name.trim() || t.name,
               groups: [],
               matches: [],
               bracket: null,
               status: 'draft',
+              teamByPlayerId: t.teamByPlayerId ?? {},
             }
           : t,
       ),
@@ -178,9 +181,9 @@ export default function SetupPage() {
                 <input
                   type="number"
                   min={2}
-                  max={8}
+                  max={64}
                   value={groupSize}
-                  onChange={(e) => setGroupSize(Number(e.target.value))}
+                  onChange={(e) => setGroupSize(Math.max(2, Number(e.target.value) || 2))}
                 />
               </label>
               <label>
@@ -188,20 +191,44 @@ export default function SetupPage() {
                 <input
                   type="number"
                   min={1}
-                  max={4}
+                  max={32}
                   value={advancePerGroup}
-                  onChange={(e) => setAdvancePerGroup(Number(e.target.value))}
+                  onChange={(e) =>
+                    setAdvancePerGroup(Math.max(1, Number(e.target.value) || 1))
+                  }
                 />
               </label>
-            </div>
+          </div>
           )}
 
-          <h3>Jogadores</h3>
+          <label className="player-check">
+            <input
+              type="checkbox"
+              checked={fixedTeams}
+              onChange={(e) => setFixedTeams(e.target.checked)}
+            />
+            Usar times fixos (sorteio) — libera a aba Times neste campeonato
+          </label>
+
+          <h3>Jogadores ({selected.length} selecionados)</h3>
+          <p className="muted">Sem limite fixo — selecione quantos quiser (mínimo 2).</p>
           {store.players.length === 0 && (
             <p className="muted">
               Cadastre em <Link to="/players">Jogadores</Link> primeiro.
             </p>
           )}
+          <div className="row" style={{ marginBottom: '0.5rem' }}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setSelected(store.players.map((p) => p.id))}
+            >
+              Selecionar todos
+            </button>
+            <button type="button" className="secondary" onClick={() => setSelected([])}>
+              Limpar seleção
+            </button>
+          </div>
           <div>
             {store.players.map((p) => (
               <label key={p.id} className="player-check">

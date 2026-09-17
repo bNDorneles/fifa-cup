@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { labelPlayer } from '@shared/types';
 import {
   buildSingleElimination,
   groupsComplete,
@@ -24,8 +25,7 @@ export default function GroupsPage() {
     return <p className="muted">Este formato não usa fase de grupos.</p>;
   }
 
-  const nameOf = (id: string | null) =>
-    id ? store.players.find((p) => p.id === id)?.name ?? id : 'TBD';
+  const nameOf = (id: string | null) => labelPlayer(id, store.players, activeTournament);
 
   async function saveScore(matchId: string, homeScore: number, awayScore: number) {
     const matches = setMatchScore(activeTournament!.matches, matchId, homeScore, awayScore, true);

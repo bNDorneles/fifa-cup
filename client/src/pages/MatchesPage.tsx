@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { labelPlayer } from '@shared/types';
 import { setMatchScore } from '@shared/tournament/bracket';
 import type { Match } from '@shared/types';
 import ScoreForm from '../components/ScoreForm';
@@ -23,8 +24,7 @@ export default function MatchesPage() {
     );
   }
 
-  const nameOf = (id: string | null) =>
-    id ? store.players.find((p) => p.id === id)?.name ?? id : 'TBD';
+  const nameOf = (id: string | null) => labelPlayer(id, store.players, activeTournament);
 
   const pending = activeTournament.matches.filter(
     (m) => m.status === 'pending' && m.homeId && m.awayId,
